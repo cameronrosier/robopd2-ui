@@ -1,0 +1,41 @@
+---
+trigger:
+  branches:
+    include:
+      - "main"
+
+pr:
+  branches:
+    include:
+      - "main"
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: robopd2/ado-pipeline-templates
+      ref: main
+      endpoint: 'robopd2'
+
+variables:
+  azureSubscription: 'azure-rm-serviceendpoint'
+  resourceGroup: 'robopd2'
+  acrName: 'robopd2ui'
+  dockerImageName: 'robopd2-ui'
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+    dockerImageTag: 'latest'
+  ${{ else }}:
+    dockerImageTag: 'dev-$(Build.BuildId)'
+
+jobs:
+  - template: docker-templates/docker-stages.yml@templates
+    parameters:
+      azureSubscription: ${{ variables.azureSubscription }}
+      resourceGroup: ${{ variables.resourceGroup }}
+      acrName: ${{ variables.acrName }}
+      dockerImageName: ${{ variables.dockerImageName }}
+      dockerImageTag: '${{ variables.dockerImageTag }}'
+      dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
