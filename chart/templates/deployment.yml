@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chart.fullname" . }}-deployment
+  labels:
+    app: robopd2-ui
+  {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: robopd2-ui
+    {{- include "chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: robopd2-ui
+      {{- include "chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.deployment.robopd2Ui.image.repository }}:{{ .Values.deployment.robopd2Ui.image.tag
+          | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.deployment.robopd2Ui.imagePullPolicy }}
+        name: robopd2-ui
+        ports:
+        - containerPort: 80
+          name: robopd2-ui
+        resources: {{- toYaml .Values.deployment.robopd2Ui.resources | nindent 10 }}
